@@ -4,6 +4,8 @@ import android.app.DatePickerDialog
 import android.content.Intent
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.provider.AlarmClock.EXTRA_MESSAGE
+import android.support.design.R.id.message
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -55,11 +57,6 @@ class HillfortsMainActivity : AppCompatActivity(), AnkoLogger {
             showImagePicker(this, IMAGE_REQUEST)
         }
 
-        hillfortLocation.setOnClickListener {
-            val location = Location(52.245696, -7.139102, 15f)
-            startActivity(intentFor<MapsActivity>().putExtra("location", location))
-        }
-
 
         textview_date = this.text_view_date_1
         button_date = this.button_date_1
@@ -88,15 +85,6 @@ class HillfortsMainActivity : AppCompatActivity(), AnkoLogger {
 
         })
 
-        hillfortLocation.setOnClickListener {
-            val location = Location(52.245696, -7.139102, 15f)
-            if (hillfort.zoom != 0f) {
-                location.lat = hillfort.lat
-                location.lng = hillfort.lng
-                location.zoom = hillfort.zoom
-            }
-            startActivityForResult(intentFor<MapsActivity>().putExtra("location", location), LOCATION_REQUEST)
-        }
 
         if (intent.hasExtra("hillfort_edit")) {
             edit = true
@@ -107,14 +95,16 @@ class HillfortsMainActivity : AppCompatActivity(), AnkoLogger {
             if (hillfort.image != null) {
                 chooseImage.setText(R.string.change_hillfort_image)
             }
+        }
 
 
             btnAdd.setOnClickListener() {
                 hillfort.title = hillfortTitle.text.toString()
                 hillfort.description = hillfortDescription.text.toString()
 
+
                 if (edit) {
-                    app.hillforts.create(hillfort.copy())
+                    app.hillforts.update(hillfort.copy())
                     setResult(201)
                     finish()
 
@@ -130,9 +120,16 @@ class HillfortsMainActivity : AppCompatActivity(), AnkoLogger {
 
             }
 
-            hillfortLocation.setOnClickListener {
+        hillfortLocation.setOnClickListener {
+            val location = Location(52.245696, -7.139102, 15f)
+            if (hillfort.zoom != 0f) {
+                location.lat = hillfort.lat
+                location.lng = hillfort.lng
+                location.zoom = hillfort.zoom
             }
+            startActivityForResult(intentFor<MapsActivity>().putExtra("location", location), LOCATION_REQUEST)
         }
+
     }
 
 
