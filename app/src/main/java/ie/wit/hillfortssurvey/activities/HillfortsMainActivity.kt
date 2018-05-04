@@ -97,28 +97,25 @@ class HillfortsMainActivity : AppCompatActivity(), AnkoLogger {
             }
         }
 
+        fun save() {
+            hillfort.title = hillfortTitle.text.toString()
+            hillfort.description = hillfortDescription.text.toString()
 
-            btnAdd.setOnClickListener() {
-                hillfort.title = hillfortTitle.text.toString()
-                hillfort.description = hillfortDescription.text.toString()
-
-
-                if (edit) {
-                    app.hillforts.update(hillfort.copy())
-                    setResult(201)
+            if (edit) {
+                app.hillforts.update(hillfort.copy())
+                setResult(201)
+                finish()
+            } else {
+                if (hillfort.title.isNotEmpty()) {
+                    app.hillforts.create(hillfort.copy())
+                    setResult(200)
                     finish()
-
                 } else {
-                    if (hillfort.title.isNotEmpty()) {
-                        app.hillforts.create(hillfort.copy())
-                        setResult(200)
-                        finish()
-                    } else {
-                        toast(R.string.enter_hillfort_title)
-                    }
+                    toast(R.string.enter_hillfort_title)
                 }
-
             }
+        }
+
 
         hillfortLocation.setOnClickListener {
             val location = Location(52.245696, -7.139102, 15f)
