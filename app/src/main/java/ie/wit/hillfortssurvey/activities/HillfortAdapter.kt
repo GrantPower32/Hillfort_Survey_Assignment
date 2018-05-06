@@ -14,6 +14,7 @@ import kotlinx.android.synthetic.main.card_hillfort.view.*
 
 interface HillfortListener {
     fun onHillfortClick(hillfort: HillfortModel)
+    fun onHillfortLongClick(hillfort: HillfortModel)
 }
 
 class HillfortAdapter constructor(private var hillforts: List<HillfortModel>,
@@ -28,6 +29,7 @@ class HillfortAdapter constructor(private var hillforts: List<HillfortModel>,
         holder.bind(hillfort, listener)
     }
 
+
     override fun getItemCount(): Int = hillforts.size
 
     class MainHolder constructor(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -37,6 +39,7 @@ class HillfortAdapter constructor(private var hillforts: List<HillfortModel>,
             itemView.hillfortCounty.text = hillfort.description
             itemView.imageIcon.setImageBitmap(readImageFromPath(itemView.context, hillfort.image))
             itemView.setOnClickListener { listener.onHillfortClick(hillfort) }
+            itemView.setOnLongClickListener { listener.onHillfortLongClick(hillfort); true }
         }
 
 

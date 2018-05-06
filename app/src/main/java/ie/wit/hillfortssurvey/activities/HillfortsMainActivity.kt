@@ -12,6 +12,10 @@ import android.view.View
 import android.widget.Button
 import android.widget.DatePicker
 import android.widget.TextView
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MarkerOptions
 import ie.wit.hillfortssurvey.R
 import kotlinx.android.synthetic.main.activity_hillfort_main.*
 import org.jetbrains.anko.AnkoLogger
@@ -39,12 +43,14 @@ class HillfortsMainActivity : AppCompatActivity(), AnkoLogger {
     var button_date: Button? = null
     var textview_date: TextView? = null
     var cal = Calendar.getInstance()
-    // var location = Location(52.245696, -7.139102, 15f)
+    lateinit var map: GoogleMap
+    val defaultLocation = Location(52.245696, -7.139102, 15f)
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_hillfort_main)
+        mapView.onCreate(savedInstanceState);
         app = application as MainApp
 
         toolbarAdd.title = title
@@ -57,6 +63,10 @@ class HillfortsMainActivity : AppCompatActivity(), AnkoLogger {
             showImagePicker(this, IMAGE_REQUEST)
         }
 
+        mapView.getMapAsync {
+            map = it
+            configureMap()
+        }
 
         textview_date = this.text_view_date_1
         button_date = this.button_date_1
@@ -95,48 +105,59 @@ class HillfortsMainActivity : AppCompatActivity(), AnkoLogger {
             if (hillfort.image != null) {
                 chooseImage.setText(R.string.change_hillfort_image)
             }
+        } else {
+            hillfort.lat = defaultLocation.lat
+            hillfort.lng = defaultLocation.lng
+            hillfort.zoom = defaultLocation.zoom
+
         }
-
-        fun save() {
-            hillfort.title = hillfortTitle.text.toString()
-            hillfort.description = hillfortDescription.text.toString()
-
-            if (edit) {
-                app.hillforts.update(hillfort.copy())
-                setResult(201)
-                finish()
-            } else {
-                if (hillfort.title.isNotEmpty()) {
-                    app.hillforts.create(hillfort.copy())
-                    setResult(200)
-                    finish()
-                } else {
-                    toast(R.string.enter_hillfort_title)
-                }
-            }
-        }
-
-
         hillfortLocation.setOnClickListener {
             val location = Location(52.245696, -7.139102, 15f)
             if (hillfort.zoom != 0f) {
-                location.lat = hillfort.lat
-                location.lng = hillfort.lng
-                location.zoom = hillfort.zoom
+                defaultLocation.lat = hillfort.lat
+                defaultLocation.lng = hillfort.lng
+                defaultLocation.zoom = hillfort.zoom
             }
             startActivityForResult(intentFor<MapsActivity>().putExtra("location", location), LOCATION_REQUEST)
         }
-
     }
-
+    fun configureMap() {
+        map.uiSettings.setZoomControlsEnabled(true)
+        val loc = LatLng(hillfort.lat, hillfort.lng)
+        val options = MarkerOptions().title(hillfort.title).position(loc)
+        map.addMarker(options)
+        map.moveCamera(CameraUpdateFactory.newLatLngZoom(loc, hillfort.zoom))
+    }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.menu_hillfort, menu)
         return super.onCreateOptionsMenu(menu)
     }
 
+    fun save() {
+        hillfort.title = hillfortTitle.text.toString()
+        hillfort.description = hillfortDescription.text.toString()
+
+        if (edit) {
+            app.hillforts.update(hillfort.copy())
+            setResult(201)
+            finish()
+        } else {
+            if (hillfort.title.isNotEmpty()) {
+                app.hillforts.create(hillfort.copy())
+                setResult(200)
+                finish()
+            } else {
+                toast(R.string.enter_hillfort_title)
+            }
+        }
+    }
+
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         when (item?.itemId) {
+            R.id.item_save -> {
+                save()
+            }
             R.id.item_cancel -> {
                 setResult(RESULT_CANCELED)
                 finish()
@@ -144,6 +165,8 @@ class HillfortsMainActivity : AppCompatActivity(), AnkoLogger {
         }
         return super.onOptionsItemSelected(item)
     }
+
+
 
     private fun updateDateInView() {
         val myFormat = "MM/dd/yyyy" // mention the format you need
@@ -170,5 +193,30 @@ class HillfortsMainActivity : AppCompatActivity(), AnkoLogger {
                 }
             }
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        mapView.onDestroy()
+    }
+
+    override fun onLowMemory() {
+        super.onLowMemory()
+        mapView.onLowMemory()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        mapView.onPause()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        mapView.onResume()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle?) {
+        super.onSaveInstanceState(outState)
+        mapView.onSaveInstanceState(outState)
     }
 }

@@ -64,6 +64,11 @@ class HillfortsListActivity : AppCompatActivity(), HillfortListener {
         }
     }
 
+    override fun onHillfortLongClick(hillfort: HillfortModel) {
+        app.hillforts.delete(hillfort)
+        loadHillforts()
+    }
+
     fun showHillforts (hillforts: List<HillfortModel>) {
         recyclerView.adapter = HillfortAdapter(hillforts, this)
         recyclerView.adapter.notifyDataSetChanged()
