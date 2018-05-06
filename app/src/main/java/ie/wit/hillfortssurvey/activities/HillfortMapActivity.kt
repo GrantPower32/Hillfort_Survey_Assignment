@@ -9,6 +9,7 @@ import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import ie.wit.hillfortssurvey.R
 import ie.wit.hillfortssurvey.main.MainApp
+import ie.wit.hillfortssurveys.helpers.readImageFromPath
 import kotlinx.android.synthetic.main.activity_hillfort_main.*
 import kotlinx.android.synthetic.main.activity_hillfort_map.*
 import kotlinx.android.synthetic.main.content_hillfort_map.*
@@ -24,6 +25,7 @@ class HillfortMapActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_hillfort_map)
         app = application as MainApp
+
 
         mView.onCreate(savedInstanceState);
         mView.getMapAsync {
@@ -45,7 +47,13 @@ class HillfortMapActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener
         }
 
     override fun onMarkerClick(marker: Marker): Boolean {
-        currentTitle.text = marker.title
+        async(UI) {
+            val tag = marker.tag as Long
+            val hillfort = app.hillforts.findById(tag)
+            currentTitle.text = hillfort!!.title
+            currentDescription.text = hillfort!!.description
+            imageView.setImageBitmap(readImageFromPath(this@HillfortMapActivity, hillfort.image))
+        }
         return false
     }
 

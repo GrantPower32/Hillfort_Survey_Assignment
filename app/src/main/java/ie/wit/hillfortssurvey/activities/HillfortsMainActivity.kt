@@ -1,5 +1,6 @@
 package ie.wit.hillfortssurvey.activities
 
+import android.annotation.SuppressLint
 import android.app.DatePickerDialog
 import android.content.Intent
 import android.support.v7.app.AppCompatActivity
@@ -12,6 +13,9 @@ import android.view.View
 import android.widget.Button
 import android.widget.DatePicker
 import android.widget.TextView
+import checkLocationPermissions
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.LatLng
@@ -27,6 +31,7 @@ import ie.wit.hillfortssurvey.models.Location
 import ie.wit.hillfortssurveys.helpers.readImage
 import ie.wit.hillfortssurveys.helpers.readImageFromPath
 import ie.wit.hillfortssurveys.helpers.showImagePicker
+import isPermissionGranted
 import kotlinx.android.synthetic.main.card_hillfort.*
 import org.jetbrains.anko.intentFor
 import java.text.SimpleDateFormat
@@ -45,6 +50,7 @@ class HillfortsMainActivity : AppCompatActivity(), AnkoLogger {
     var cal = Calendar.getInstance()
     lateinit var map: GoogleMap
     val defaultLocation = Location(52.245696, -7.139102, 15f)
+    private lateinit var locationService: FusedLocationProviderClient
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -52,6 +58,7 @@ class HillfortsMainActivity : AppCompatActivity(), AnkoLogger {
         setContentView(R.layout.activity_hillfort_main)
         mapView.onCreate(savedInstanceState);
         app = application as MainApp
+        locationService = LocationServices.getFusedLocationProviderClient(this)
 
         toolbarAdd.title = title
         setSupportActionBar(toolbarAdd)
@@ -112,13 +119,12 @@ class HillfortsMainActivity : AppCompatActivity(), AnkoLogger {
 
         }
         hillfortLocation.setOnClickListener {
-            val location = Location(52.245696, -7.139102, 15f)
             if (hillfort.zoom != 0f) {
                 defaultLocation.lat = hillfort.lat
                 defaultLocation.lng = hillfort.lng
                 defaultLocation.zoom = hillfort.zoom
             }
-            startActivityForResult(intentFor<MapsActivity>().putExtra("location", location), LOCATION_REQUEST)
+            startActivityForResult(intentFor<MapsActivity>().putExtra("location", defaultLocation), LOCATION_REQUEST)
         }
     }
     fun configureMap() {
@@ -179,7 +185,7 @@ class HillfortsMainActivity : AppCompatActivity(), AnkoLogger {
         when (requestCode) {
             IMAGE_REQUEST -> {
                 if (data != null) {
-                    hillfort.image = data.getData().toString()
+                    hillfort.image = data.toString()
                     hillfortImage.setImageBitmap(readImage(this, resultCode, data))
                     chooseImage.setText(R.string.change_hillfort_image)
                 }
@@ -194,6 +200,36 @@ class HillfortsMainActivity : AppCompatActivity(), AnkoLogger {
             }
         }
     }
+
+    override fun onStart() {
+        super.onStart()
+        if (checkLocationPermissions(this)) {
+            btnHere.isEnabled = true
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+        if (isPermissionGranted(requestCode, grantResults)) {
+            btnHere.isEnabled = true
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    fun setCurrentLocation() {
+        locationService.lastLocation.addOnSuccessListener {
+            defaultLocation.lat = it.latitude
+            defaultLocation.lng = it.longitude
+            hillfort.lat = it.latitude
+            hillfort.lng = it.longitude
+            configureMap()
+
+            btnHere.setOnClickListener {
+                setCurrentLocation()
+            }
+        }
+    }
+
 
     override fun onDestroy() {
         super.onDestroy()

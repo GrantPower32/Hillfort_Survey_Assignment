@@ -9,14 +9,18 @@ import android.os.Bundle
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.view.*
+import com.google.android.gms.maps.model.Marker
 import ie.wit.hillfortssurvey.R
 import ie.wit.hillfortssurvey.main.MainApp
 import ie.wit.hillfortssurvey.models.HillfortModel
+import ie.wit.hillfortssurveys.helpers.readImageFromPath
 import kotlinx.android.synthetic.main.activity_hillforts_list.*
 import kotlinx.android.synthetic.main.card_hillfort.view.*
+import kotlinx.android.synthetic.main.content_hillfort_map.*
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.async
 import org.jetbrains.anko.intentFor
+import org.jetbrains.anko.startActivity
 import org.jetbrains.anko.startActivityForResult
 
 
@@ -50,6 +54,7 @@ class HillfortsListActivity : AppCompatActivity(), HillfortListener {
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         when (item?.itemId) {
             R.id.item_add -> startActivityForResult<HillfortsMainActivity>(200)
+            R.id.item_map -> startActivity<HillfortMapActivity>()
         }
         return super.onOptionsItemSelected(item)
     }
@@ -73,5 +78,6 @@ class HillfortsListActivity : AppCompatActivity(), HillfortListener {
         recyclerView.adapter = HillfortAdapter(hillforts, this)
         recyclerView.adapter.notifyDataSetChanged()
     }
+
 
 }
